@@ -14,10 +14,11 @@ class DecoderScreen extends StatefulWidget {
 class _DecoderScreenState extends State<DecoderScreen> {
   File? imageFile;
   String decodedString = '';
+  final ImagePicker _picker = ImagePicker(); // Instance of ImagePicker
 
-  Future<void> _pickImage() async {
-    final pickedFile = await ImagePicker().pickImage(source: ImageSource.gallery);
-
+  Future<void> pickImage(ImageSource source) async {
+    // Use ImageSource.camera or ImageSource.gallery
+    final pickedFile = await _picker.pickImage(source: source);
     setState(() {
       if (pickedFile != null) {
         imageFile = File(pickedFile.path);
@@ -27,26 +28,28 @@ class _DecoderScreenState extends State<DecoderScreen> {
     });
   }
 
-  Future<void> _decodeImage() async {
+  Future<void> decodeImage() async {
     if (imageFile == null) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please select an image first.')));
+      ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Please select an image first.')));
       return;
     }
 
     try {
       final image = img.decodeImage(await imageFile!.readAsBytes());
       if (image == null) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Could not decode image.')));
+        ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Could not decode image.')));
         return;
       }
 
       final decoded = decode(image); // Use your decode function
-
       setState(() {
         decodedString = decoded;
       });
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Decoding error: $e')));
+      ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Decoding error: $e')));
     }
   }
 
@@ -58,16 +61,25 @@ class _DecoderScreenState extends State<DecoderScreen> {
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
-            ElevatedButton(
-              onPressed: _pickImage,
-              child: const Text('Select Image'),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly, // Distribute buttons evenly
+              children: [
+                ElevatedButton(
+                  onPressed: () => pickImage(ImageSource.gallery),
+                  child: const Text('Select from Gallery'),
+                ),
+                ElevatedButton(
+                  onPressed: () => pickImage(ImageSource.camera), // Open Camera
+                  child: const Text('Take a Picture'),
+                ),
+              ],
             ),
             if (imageFile != null)
               Expanded(
                 child: Image.file(imageFile!),
               ),
             ElevatedButton(
-              onPressed: _decodeImage,
+              onPressed: decodeImage, // Fixed: removed underscore
               child: const Text('Decode Image'),
             ),
             if (decodedString.isNotEmpty)
