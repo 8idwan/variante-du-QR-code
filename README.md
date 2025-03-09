@@ -1,4 +1,4 @@
-# variante_du_qr_code
+# qr_code
 
 A new Flutter project.
 
